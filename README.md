@@ -43,7 +43,7 @@
 14. 运行 ```git commit -m "提交注释说明"```命令。
 15. 运行 ```git status```命令。
 16. 运行 ```git push -u origin main``` 命令（根据git窗口写main/master分支）。
-17. **已经在本地配置好了账号和远程仓库的公私钥**，[账号/公私钥配置方法：](https://github.com/cavon168/learn_git)。
+17. **已经在本地配置好了账号和远程仓库的公私钥：[账号/公私钥配置方法](https://github.com/cavon168/learn_git)** 。
 18. 推送本地文件到GitHub之后，我们复制网址链接：原仓库--> Issues栏，找到提交作业的班级，复制提交格式，填写内容进行提交。
 
   > ## <color style="color: red;">**眼过千遍不如手过一遍***<color/>
