@@ -22,30 +22,3 @@
 
 ## 注意事项
  如果对 Git 和 GitHub 不太了解，请参考 [Git 官方文档](https://git-scm.com/book/zh/v2) 或者极客时间的[《玩转 Git 三剑客》](https://time.geekbang.org/course/intro/145)视频课程。
-
-
-## 提交作业完整流程
-1. 进入到某某仓库的根目录，点击Fork。
-    > 原仓库在经过 Fork（复制）到我的仓库。<br>
-    > 彼此独立（即使原仓库修改文件提交不会影响到我的仓库，反之亦是）。
-2. 首先复制SSH协议地址，把仓库克隆到本地，在本地编辑好代码后再推送到GitHub仓库。
-3. 运行 `pwd` 命令，记住不要再已有git项目的文件夹下面克隆项目。
-4. 运行 `git clone git@github.com:cavon168/Frontend-06-Template.git` 命令。
-5. 进入到仓库文件夹下面，运行 `cd Frontend-06-Template` 命令。
-6. 运行 `ls` 命令，查看Frontend-06-Template文件夹下面有什么内容。
-7. 运行 `cd "Week 01"` 命令进入到Week 01文件下面写一个代码文件然后提交到远程仓库。
-8. 运行 `ls` 命令之后会看到里面的文件。
-9. 运行 `vim hello.txt` 命令新建一个文件，内容写好之后可以 `Ctrl + C` 看最后一行按照提示返回。
-10. 如果要修改文件可以安照**步骤9**来。
-11. 常规提交流程。
-12. 运行 `git add .` 命令。
-13. 运行 `git status` 命令。
-14. 运行 `git commit -m "提交注释说明"`命令。
-15. 运行 `git status`命令。
-16. 运行 `git push -u origin main` 命令（根据git窗口写main/master分支）。
-17. **已经在本地配置好了账号和远程仓库的公私钥：[账号/公私钥配置方法](https://github.com/cavon168/learn_git)** 。
-18. 推送本地文件到GitHub之后，我们复制网址链接：原仓库--> Issues栏，找到提交作业的班级，复制提交格式，填写内容进行提交。
-
-<br>
-
-> ## <color style="color: red;">**眼过千遍不如手过一遍***<color/>
