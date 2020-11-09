@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TicTacToe: AI优化策略</title>
+  <style>
+    .cell {
+      width: 100px;
+      height: 100px;
+      background-color: green;
+      border: 1px solid white;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 100px;
+      font-size: 50px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="board"></div>
+  <script>
+    // 1. 二维数组，表示棋盘格状态  空0 圈1 叉2
+    let pattern = [
+      [0, 0, 2],
+      [0, 1, 0],
+      [0, 0, 0]
+    ];
+
+    let color = 1;
+
+    // 2. 绘制棋盘格
+    function show() {
+      let board = document.getElementById("board");
+      board.innerHTML = "";
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          let cell = document.createElement("div");
+          cell.classList.add("cell");
+          cell.innerText = pattern[i][j] == 2 ? "❌" : pattern[i][j] == 1 ? "⭕️" : "";
+          cell.addEventListener("click", () => move(j, i));
+          board.appendChild(cell);
+        }
+        board.appendChild(document.createElement("br"));
+      }
+    }
+
+    // 3. 添加监听事件
+    function move(i, j) {
+      pattern[j][i] = color;
+      if (check(pattern, color)) {
+        alert(color == 2 ? "❌ is winner!" : "⭕️ is winner!");
+      }
+      color = 3 - color;
+      show();
+      if (willWin(pattern, color)) {
+        console.log(color == 2 ? "❌ will win!" : "⭕️ will win!");
+      }
+    }
+
+    // 4. 检查3行3列2斜
+    function check(pattern, color) {
+      // 行
+      for (let i = 0; i < 3; i++) {
+        let win = true;
+        for (let j = 0; j < 3; j++) {
+          if (pattern[i][j] !== color) {
+            win = false;
+          }
+        }
+        if (win) {
+          return true;
+        }
+      }
+      // 列
+      for (let i = 0; i < 3; i++) {
+        let win = true;
+        for (let j = 0; j < 3; j++) {
+          if (pattern[j][i] !== color) {
+            win = false;
+          }
+        }
+        if (win) {
+          return true;
+        }
+      }
+      // 左上\纵横相等
+      {
+        let win = true;
+        for (let i = 0; i < 3; i++) {
+          if (pattern[i][i] !== color) {
+            win = false;
+          }
+        }
+        if (win) {
+          return true;
+        }
+      }
+      // 右上/i+j=2
+      {
+        let win = true;
+        for (let i = 0; i < 3; i++) {
+          if (pattern[i][2 - i] !== color) {
+            win = false;
+          }
+        }
+        if (win) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    // 防止原先的pattern被破坏掉
+    function clone(pattern) {
+      return JSON.parse(JSON.stringify(pattern));
+    }
+
+    // 5. 预检胜负
+    function willWin(pattern, color) {
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          // 位置有子 跳过
+          if (pattern[i][j]) {
+            continue;
+          }
+          // 无子 clone
+          let tmp = clone(pattern);
+          tmp[i][j] = color;
+          if (check(tmp, color)) {
+            return [j, i]; // 返回point值
+          }
+        }
+      }
+      return null;
+    }
+
+    // 6. 最优策略
+    function bestchoice(pattern, color) {
+      let p;
+      if (p = willWin(pattern, color)) {
+        return {
+          point: p,
+          result: 1 // 输了-1 赢了+1 和了0
+        }
+      }
+      // 弱于任何一个局面，初始值，最差的点
+      let result = -2;
+      let point = null;
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          if (pattern[i][j]) {
+            continue;
+          }
+          let tmp = clone(pattern);
+          tmp[i][j] = color;
+          // 查看对方最好的策略，差走
+          let r = bestchoice(tmp, 3 - color).result; // 递归
+          // 找我们走完给对方留下最差局面的点的过程
+          if (-r > result) {
+            result = -r; // 找到最差的点
+            point = [j, i]; // 将point置为[j, i]
+          }
+          // 如果已经找到一个点可以赢了  那么就停止  win-lost剪枝-->胜负剪枝
+          // if (result == 1) {
+          //   // ...
+          // }
+        }
+      }
+      return {
+        point: point,
+        result: point ? result : 0
+      }
+    }
+
+    show(pattern);
+    console.log(bestchoice(pattern, color));
+  </script>
+</body>
+
+</html>

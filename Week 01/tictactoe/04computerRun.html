@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TicTacToe: 电脑运算增加AI初步功能</title>
+  <style>
+    .cell {
+      width: 100px;
+      height: 100px;
+      background-color: green;
+      border: 1px solid white;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 100px;
+      font-size: 50px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="board"></div>
+  <script>
+    let pattern = [
+      [0, 0, 0],
+      [0, 0, 0],
+      [0, 0, 0]
+    ];
+
+    let color = 1;
+
+    function show() {
+      let board = document.getElementById("board");
+
+      board.innerHTML = "";
+
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          let cell = document.createElement("div");
+          cell.classList.add("cell");
+          cell.innerText = pattern[i][j] == 2 ? "❌" : pattern[i][j] == 1 ? "⭕️" : "";
+          cell.addEventListener("click", () => move(j, i));
+          board.appendChild(cell);
+        }
+        board.appendChild(document.createElement("br"));
+      }
+    }
+
+    function move(i, j) {
+      pattern[j][i] = color;
+      if (check(pattern, color)) {
+        alert(color == 2 ? "❌ is winner" : "⭕️ is winner");
+      }
+      color = 3 - color;
+      show();
+      if (willWin(pattern, color)) {
+        console.log(color == 2 ? "❌ is winner" : "⭕️ is winner");
+      }
+    }
+
+    function check(pattern, color) {
+      // 行
+      for (let i = 0; i < 3; i++) {
+        let win = true;
+        for (let j = 0; j < 3; j++) {
+          if (pattern[i][j] !== color) {
+            win = false;
+          }
+        }
+        if (win) {
+          return true;
+        }
+      }
+      // 列
+      for (let i = 0; i < 3; i++) {
+        let win = true;
+        for (let j = 0; j < 3; j++) {
+          if (pattern[j][i] !== color) {
+            win = false;
+          }
+        }
+        if (win) {
+          return true;
+        }
+      }
+      // 斜向 左上\ 横纵相等
+      {
+        let win = true;
+        for (let i = 0; i < 3; i++) {
+          if (pattern[i][i] !== color) {
+            win = false;
+          }
+        }
+        if (win) {
+          return true;
+        }
+      }
+      // 斜向 右上/ i+j=2
+      {
+        let win = true;
+        for (let i = 0; i < 3; i++) {
+          if (pattern[i][i - 2] !== color) {
+            win = false;
+          }
+        }
+        if (win) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    // 保证原来的pattern不被破坏掉
+    function clone(pattern) {
+      return JSON.parse(JSON.stringify(pattern));
+    }
+
+    // 预检是不是要赢了
+    function willWin(pattern, color) {
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          // 检查每个位置有值时  跳过
+          if (pattern[i][j]) {
+            continue;
+          }
+          // 位置为空  clone
+          let tmp = clone(pattern);
+          tmp[i][j] = color;
+          // 要赢  true
+          if (check(tmp, color)) {
+            return true;
+          }
+        }
+      }
+      return false;  // 没点赢 false
+    }
+
+    show(pattern);
+
+  </script>
+</body>
+
+</html>
