@@ -56,3 +56,38 @@
 
 - 其他
   - AI实现需要靠估值的部分
+
+## 红绿灯
+  - 问题
+    > 一个路口的红绿灯，会按照绿灯亮10秒，黄灯亮2秒，红灯亮5秒的顺序无限循环，请编写这个JS代码来控制这个红绿灯
+
+  - 思路
+    - JavaScript的异步机制
+      - callback：利用函数回调
+      - Promise：来自Promise/A+跨语言设计
+      - async/await：基于Promise语法的支持和封装，运行时靠Promise去管理异步的机制
+
+  - 实现
+    - UI
+    - 业务逻辑
+  
+  - 利弊
+    - 经典回调：层级嵌套，callback-hell --> 回调地狱，降低代码阅读和运行效率
+    - Promise：链式的表达式形式
+    - async/await：分支、循环、顺序三种结构去描述异步关系，能够描述同步代码的分支顺序循环，也能够描述async/await的执行
+      - 好处：添加事件
+    - generator：yield模拟async/await
+
+  - Promise
+    - promise then 之后可以return 另一个 promise
+    - 没有嵌套的关系，链式表达式的形式
+    - Promise.all 同时等待多个Promise结束之后再去执行
+    - Promise.race 进行竞争关系，多个Promise并行执行，回来一个Promise执行完毕
+
+  - generator与异步
+    - 模拟async/await
+    - async generator：产出异步的迭代器 --> for await of语法相对应
+    - async generator 和 for await of 配合使用机制
+
+  - 注意
+    - 在 **while true** ，里面没有break的用法，同步代码里面也基本不会出现，但是**在异步代码里很常见**

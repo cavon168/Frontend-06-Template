@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>红绿灯: async/await</title>
+  <style>
+    div {
+      width: 100px;
+      height: 100px;
+      background-color: grey;
+      border-radius: 50px;
+      display: inline-block;
+      margin: 30px;
+    }
+
+    .green.light {
+      background-color: green;
+    }
+
+    .yellow.light {
+      background-color: yellow;
+    }
+
+    .red.light {
+      background-color: red;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="green"></div>
+  <div class="yellow"></div>
+  <div class="red"></div>
+
+  <button id="next">next</button>
+
+  <script>
+
+    function green() {
+      var lights = document.getElementsByTagName("div");
+      for (var i = 0; i < 3; i++) lights[i].classList.remove("light");
+      document.getElementsByClassName("green")[0].classList.add("light");
+    }
+
+    function yellow() {
+      var lights = document.getElementsByTagName("div");
+      for (var i = 0; i < 3; i++) lights[i].classList.remove("light");
+      document.getElementsByClassName("yellow")[0].classList.add("light");
+    }
+
+    function red() {
+      var lights = document.getElementsByTagName("div");
+      for (var i = 0; i < 3; i++) lights[i].classList.remove("light");
+      document.getElementsByClassName("red")[0].classList.add("light");
+    }
+
+    // 自动控制
+    function sleep(t) {
+      return new Promise((resolve, reject) => {
+        setTimeout(resolve, t);
+      })
+    }
+
+    // 手动控制
+    function happen(elements, eventName) {
+      return new Promise((resolve, reject) => {
+        elements.addEventListener(eventName, resolve, { once: true });
+      })
+    }
+
+    async function go() {
+      var nextBtn = document.getElementById("next");
+      while (true) {
+        green();
+        await happen(nextBtn, 'click');
+        yellow();
+        await happen(nextBtn, 'click');
+        red();
+        await happen(nextBtn, 'click');
+      }
+    }
+
+
+  </script>
+</body>
+
+</html>
