@@ -58,8 +58,6 @@
     - *JavaScript* 里面有 *queue* 这个数据结构吗？
       > *JavaScript* 的数组是一个天然的队列和一个天然的栈。有 *shift* 、*unshift* 和 *push* 、*pop* 两组方法。<br>
       > 如果 *push* 跟 *shift* 相对，那么它就是一个队列<br>
-      > *pop* 跟 *unshift* 联合使用，也是一个队列
-      <br>
-      > 如果 *push* 和 *pop* 作为一组来使用，那么它就是一个栈
-      <br>
+      > *pop* 跟 *unshift* 联合使用，也是一个队列<br>
+      > 如果 *push* 和 *pop* 作为一组来使用，那么它就是一个栈<br>
       > *shift* 和 *unshift* 同理 栈  不考虑  性能低
