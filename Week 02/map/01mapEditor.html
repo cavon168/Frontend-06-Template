@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=s, initial-scale=1.0">
+  <title>寻路: 实现一个地图编辑器</title>
+  <style>
+    * {
+      padding: 0;
+      margin: 0;
+    }
+    #container {
+      width: 701px;
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .cell {
+      width: 6px;
+      height: 6px;
+      background-color: gray;
+      border-right: 1px solid white;
+      border-bottom: 1px solid white;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="container"></div>
+  <!-- 按下的时候将 localStorage['map'] 以map的JSON形式存起来 -->
+  <button onclick="localStorage['map'] = JSON.stringify(map)">save</button>
+  <script>
+    /* === 画地图的部分 */
+
+    // 1. 设计一个数据结构去保存这张地图上，100 * 100 的地图网格，选用一维数组初始化10000的数组
+    let map = localStorage['map'] ? JSON.parse(localStorage['map']) : Array(10000).fill(0);
+
+    let container = document.getElementById("container");
+    // 2. 挨个填东西
+    for (let y = 0; y < 100; y++) {
+      for (let x = 0; x < 100; x++) {
+        let cell = document.createElement("div");
+        cell.classList.add("cell");
+
+        // 找到它对应的地图里面的位置：用一维数字来表示一个二维矩阵的技巧
+        if (map[100 * y + x] == 1) { // 墙1、没墙0
+          cell.style.backgroundColor = "black";
+        }
+        /* --- 编辑地图的部分 */
+        cell.addEventListener("mousemove", () => {
+          // 检查是不是mousedown状态的mousemove，按住的时候move变墙
+          if (mousedown) {
+            // 右键的时候清除
+            if (clear) {
+              cell.style.backgroundColor = "";
+              map[y * 100 + x] = 0;
+            }
+            // 左键的时候建墙
+            else {
+              // 视觉上变成墙
+              cell.style.backgroundColor = "black";
+              // 逻辑上变成墙
+              map[y * 100 + x] = 1;
+            }
+          }
+        });
+        /* --- */
+
+        container.appendChild(cell);
+      }
+    }
+
+    let mousedown = false;
+    let clear = false;
+    document.addEventListener("mousedown", e => {
+      mousedown = true;
+      // 通过 event 来判断 一开始mousedown按右键置为3
+      clear = (e.which === 3); // 返回所按下键的数字
+    });
+
+    document.addEventListener("mouseup", () => mousedown = false);
+    // 禁用右键弹出菜单
+    document.addEventListener("contextmenu", (e) => e.preventDefault());
+
+    function path(map, start, end) {
+
+    }
+
+
+  </script>
+</body>
+
+</html>

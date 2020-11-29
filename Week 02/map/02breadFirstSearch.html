@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>寻路: 广度优先搜索</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    #container {
+      width: 701px;
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .cell {
+      width: 6px;
+      height: 6px;
+      background-color: gray;
+      border-bottom: 1px solid white;
+      border-right: 1px solid white;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="container"></div>
+  <button onclick="localStrong['map'] = JSON.stringify(map)">save</button>
+
+  <script>
+    let map = localStorage['map'] ? JSON.parse(localStorage['map']) : Array(10000).fill(0);
+
+    let container = document.getElementById("container");
+    for (let y = 0; y < 100; y++) {
+      for (let x = 0; x < 100; x++) {
+        let cell = document.createElement("div");
+        cell.classList.add("cell");
+
+        cell.addEventListener("mousemove", () => {
+
+          if (mousedown) {
+            if (clear) {
+              cell.style.backgroundColor = "";
+              map[y * 100 + x] = 0;
+            }
+            else {
+              cell.style.backgroundColor = "black";
+              map[y * 100 + x] = 1;
+            }
+          }
+
+        });
+
+        container.appendChild(cell);
+      }
+    }
+
+    let mousedown = false;
+    let clear = false;
+
+    document.addEventListener("mousedown", e => {
+      mousedown = true;
+      clear = (e.which) == 3;
+    });
+
+    document.addEventListener("mouseup", () => mousedown = false);
+
+    document.addEventListener("contextmenu", e => e.preventDefault());
+
+    /**
+      * @description 算出一条路劲，从起点走到终点
+      * @param {map} 地图
+      * @param {start} 起点
+      * @param {end}   终点
+      */
+    function path(map, start, end) {
+      /* 
+      集合queue用数组表示，queue是一种数据结构，先进先出、一边进一边出。
+
+      第一遍循环把 start 的4个周围的节点加进这个队列里，
+      然后逐个的把周围的点全都加进这个队列，一直到队列变空为止,
+      这就是广度优先搜索的主要内容。
+
+      此处选用 shift/push 广度优先搜索作为一个队列的入队和出队的两个方法
+
+      如果将 shift/push 改为 push/pop 就变成深度优先搜索
+
+      广度优先搜素和深度优先搜索就差在数据结构上，将 queue 改为 stack 就是深度优先搜索
+      
+      A*搜索：把 queue 变成了一个排序的接口
+      */
+      var queue = [start];
+
+      // 入队的逻辑
+      function insert(x, y) {
+
+        if (x < 0 || x >= 100 || y < 0 || y >= 100) return;
+
+        /** 处理边缘case */
+        if (map[y * 100 + x]) return;
+        // 找到了这个点在地图上做个标记，状态从0改为2。已经走过的点，就给一个特殊的标记，既不是0也不是1
+        map[y * 100 + x] = 2;
+        /** ---  */
+
+        // 把这个点入队
+        queue.push([x, y]);
+      }
+
+      while (queue.length) {
+        // 从队里面取出来一个元素
+        let [x, y] = queue.shift();
+        console.log(x, y);
+
+        // 找到了最终end节点 说明找到了最终的答案
+        if (x === end[0] && y === end[1]) return true;
+
+        // 上下左右
+        insert(x - 1, y);
+        insert(x, y - 1);
+        insert(x + 1, y);
+        insert(x, y + 1);
+      }
+
+      return true;
+    }
+
+  </script>
+</body>
+
+</html>

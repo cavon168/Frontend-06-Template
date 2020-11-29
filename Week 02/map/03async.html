@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>寻路: 通过异步编程可视化寻路算法</title>
+  <style>
+    * {
+      padding: 0;
+      margin: 0;
+    }
+
+    #container {
+      width: 701px;
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .cell {
+      width: 6px;
+      height: 6px;
+      background-color: gray;
+      border-bottom: 1px solid white;
+      border-right: 1px solid white;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="container"></div>
+  <button onclick="localStorage['map'] = JSON.stringify(map)">save</button>
+  <script>
+    let map = localStorage['map'] ? JSON.parse(localStorage['map']) : Array(100000).fill(0);
+
+    let container = document.getElementById("container");
+
+    for (let y = 0; y < 100; y++) {
+      for (let x = 0; x < 100; x++) {
+        let cell = document.createElement("div");
+        cell.classList.add("cell");
+
+        if (map[y * 100 + x] == 1) {
+          cell.style.backgroundColor = "black";
+        }
+
+        cell.addEventListener("mousemove", () => {
+          if (mousedown) {
+
+            if (clear) {
+              cell.style.backgroundColor = "";
+              map[y * 100 + x] = 0;
+            }
+            else {
+              cell.style.backgroundColor = "black";
+              map[y * 100 + x] = 1;
+            }
+
+          }
+        });
+
+        container.appendChild(cell);
+      }
+    }
+
+    let mousedown = false;
+    let clear = false;
+
+    document.addEventListener("mousedown", e => {
+      mousedown = true;
+      clear = (e.which === 3);
+    });
+    document.addEventListener("mouseup", () => mousedown = false);
+    document.addEventListener("contextmenu", e => e.preventDefault());
+
+
+    function sleep(t) {
+      return new Promise(function (resolve, reject) {
+        setTimeout(resolve, t);
+      });
+    }
+
+
+    async function path(map, start, end) {
+      var queue = [start];
+
+      async function insert(x, y) {
+
+        if (x < 0 || x >= 100 || y < 0 || y >= 100) return;
+
+        if (map[y * 100 + x]) return;
+
+        await sleep(30);
+
+        // 给标识为2的  添加一个颜色
+        container.children[y * 100 + x].style.backgroundColor = "lightgreen";
+        map[y * 100 + x] = 2;
+
+        queue.push([x, y]);
+
+      }
+
+      while (queue.length) {
+        let [x, y] = queue.shift();
+        console.log(x, y);
+
+        if (x === end[0] && y === end[1]) return true;
+
+        await insert(x - 1, y);
+        await insert(x, y - 1);
+        await insert(x + 1, y);
+        await insert(x, y + 1);
+      }
+      return false;
+    }
+
+    /**
+     * 完成了寻路的主题
+     * 问题：
+     *      1. 算法：虽然返回了true看起来符合了预期，但是正确性不太好保证
+     *      2. 要找到一条路劲，并没有找到能不能走过去
+     *      3. 无法调试：可视化方法 async/await
+     */
+
+    // 由于是广度优先搜索，所以周围访问的时候是完全依照着访问的顺序来决定哪个是最短路劲
+
+
+  </script>
+</body>
+
+</html>

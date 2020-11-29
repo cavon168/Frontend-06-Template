@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>寻路</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    #container {
+      width: 701px;
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .cell {
+      width: 6px;
+      height: 6px;
+      background-color: gray;
+      border-bottom: 1px solid white;
+      border-right: 1px solid white;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="container"></div>
+  <button onclick="localStorage.map = JSON.stringify(map)">save</button>
+  <script>
+
+    // 1. 创建100 * 100 的地图格
+    let map = localStorage.map ? JSON.parse(localStorage.map) : new Array(10000).fill(0);
+
+    let container = document.getElementById("container");
+
+    let mousedown = false;
+    let clear = false;
+    document.addEventListener("mousedown", e => {
+      mousedown = true;
+      clear = (e.button === 2);
+    });
+    document.addEventListener("mouseup", () => mousedown = false);
+    document.addEventListener("contextmenu", e => e.preventDefault());
+
+    for (let x = 0; x < 100; x++) {
+      for (let y = 0; y < 100; y++) {
+
+        let cell = document.createElement("div");
+        cell.classList.add("cell");
+
+        if (map[x * 100 + y] === 1) {
+          cell.style.backgroundColor = "black";
+        }
+
+        cell.addEventListener("mousemove", () => {
+          if (mousedown) {
+            if (clear) {
+              cell.style.backgroundColor = "";
+              map[x * 100 + y] = 0;
+            }
+            else {
+              cell.style.backgroundColor = "black";
+              map[x * 100 + y] = 1;
+            }
+          }
+        });
+
+        container.appendChild(cell);
+
+      }
+    }
+
+    function sleep(t) {
+      return new Promise(function (resolve, reject) {
+        setTimeout(resolve, t);
+      })
+    }
+
+    // 2. 广度优先搜索路劲
+    // 3. 通过异步编程可视化寻路算法
+    // 4. 处理路径问题
+    // 6. 启发式搜索A*
+    async function findPath(map, start, end) {
+      map = map.slice();
+      // 每次取跟终点距离最小的那个
+      // let queue = new Sorted([start], (a, b) => distance(a) - distance(b)); // 跟end节点的坐标去判断
+      // let table = Object.create(map);
+
+      let collection = new BinaryHeap([start], (a, b) => distance(a) - distance(b));
+
+      container.children[start[1] * 100 + start[0]].style.backgroundColor = "green";
+      container.children[end[1] * 100 + end[0]].style.backgroundColor = "red";
+
+      function distance([x, y]) {
+        return (x - end[0]) ** 2 + (y - end[1]) ** 2;
+      }
+
+      async function insert([x, y], pre) {
+        if (x < 0 || x >= 100 || y < 0 || y >= 100) return;
+
+        // 代码修改1
+        // if (table[x * 100 + y] !== 0) return;
+        if (map[x * 100 + y] !== 0) return;
+
+        await sleep(30);
+        container.children[x * 100 + y].style.backgroundColor = "lightgreen";
+        // 修改写入的逻辑2
+        // table[x * 100 + y] = pre;
+        map[x * 100 + y] = pre;
+        // queue.give([x, y]);
+        collection.insert([x, y]);
+      }
+
+      // 利用新增加的乘方运算符计算跟end节点的距离，x坐标和y坐标的平方开根号，由于compare开不开根号都不会影响改变它的大小，因为距离都是大于1，节约运算
+      // function distance(point) {
+      //   return (point[0] - end[0]) ** 2 + (point[1] - end[1]) ** 2;
+      // }
+
+      // while (queue.length) {
+      while (collection.length) {
+        // let [x, y] = queue.take();
+        let [x, y] = collection.take(); // pop unshift  /  push shift
+        console.log(x, y);
+
+        if (x === end[0] && y === end[1]) {
+          let path = [];
+          while (x !== start[0] || y !== start[1]) {
+            // path.push(map[x * 100 + y]);
+            path.push([x, y]);
+            // [x, y] = table[x * 100 + y];
+            [x, y] = map[x * 100 + y];
+            await sleep(30);
+            container.children[x * 100 + y].style.backgroundColor = "purple";
+          }
+
+          return path;
+        }
+
+        await insert([x - 1, y], [x, y]);
+        await insert([x, y - 1], [x, y]);
+        await insert([x + 1, y], [x, y]);
+        await insert([x, y + 1], [x, y]);
+
+        await insert([x - 1, y - 1], [x, y]);
+        await insert([x + 1, y - 1], [x, y]);
+        await insert([x - 1, y + 1], [x, y]);
+        await insert([x + 1, y + 1], [x, y]);
+      }
+
+      return null;
+
+    }
+
+    // 5. 启发式搜索
+    class Sorted {
+      constructor(data, compare) {
+        this.data = data;
+        this.compare = compare;
+      }
+      take() {
+        if (!this.data.length) {
+          return;
+        }
+        let min = this.data[0];
+        let minIndex = 0;
+        for (let i = 1; i < this.data.length; i++) {
+          if (this.compare(this.data[i], min) < 0) {
+            min = this.data[i];
+            minIndex = i;
+          }
+        }
+        this.data[minIndex] = this.data[this.data.length - 1];
+        this.data.pop();
+        return min;
+      }
+      insert(v) {
+        this.data.push(v);
+      }
+      get length() {
+        return this.data.length;
+      }
+    }
+
+    // final
+    class BinaryHeap {
+      constructor(data, compare) {
+        this.data = data;
+        this.compare = compare;
+      }
+      take() {
+        if (!this.data.length) return;
+
+        let min = this.data[0];
+        let i = 0;
+
+        // fix heap
+        while (i < this.data.length) {
+          if (i * 2 + 1 >= this.data.length) {
+            break;
+          }
+          if (i * 2 + 2 >= this.data.length) {
+            this.data[i] = this.data[i * 2 + 1];
+            i = i * 2 + 1;
+            break;
+          }
+          if (this.compare(this.data[i * 2 + 1], this.data[i * 2 + 2]) < 0) {
+            this.data[i] = this.data[i * 2 + 1];
+            i = i * 2 + 1;
+          } else {
+            this.data[i] = this.data[i * 2 + 2];
+            i = i * 2 + 2;
+          }
+        }
+
+        if (i < this.data.length - 1) {
+          this.insertAt(i, this.data.pop());
+        } else {
+          this.data.pop();
+        }
+
+        return min;
+      }
+      insertAt(i, v) {
+        this.data[i] = v;
+
+        while (i > 0 && this.compare(v, this.data[Math.floor((i - 1) / 2)]) < 0) {
+          this.data[i] = this.data[Math.floor((i - 1) / 2)];
+          this.data[Math.floor((i - 1) / 2)] = v;
+          i = Math.floor((i - 1) / 2);
+        }
+      }
+      insert(v) {
+        console.log(v);
+        this.insertAt(this.data.length, v);
+      }
+      get length() {
+        return this.data.length;
+      }
+    }
+    let heap = new BinaryHeap([], (a, b) => a - b);
+    heap.insert(3);
+
+
+  </script>
+</body>
+
+</html>
