@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LL语法分析 - 四则运算</title>
+</head>
+
+<body>
+  <script>
+    var regexp = /([0-9\.]+)|([ \t]+)|([\r\n]+)|(\*)|(\/)|(\+)|(\-)/g;
+
+    var dictionary = ['Number', 'Whitespace', 'LineTerminator', '*', '/', '+', '-'];
+
+    function* tokenize(source) {
+      var result = null;
+      var lastIndex = 0;
+
+      while (true) {
+        result = regexp.exec(source);
+        lastIndex = regexp.lastIndex;
+
+        if (!result) break;
+
+        if (regexp.lastIndex - lastIndex > result[0].length) break;
+
+        let token = {
+          type: null,
+          value: null
+        }
+
+        for (let i = 1; i < dictionary.length; i++) {
+          if (result[i]) token.type = dictionary[i - 1];
+        }
+        token.value = result[0];
+        yield token;
+      }
+      yield {
+        type: 'EOF'
+      }
+    }
+
+    let source = [];
+
+    for (let token of tokenize('1024 + 10 * 25')) {
+      if (token.type !== 'Whitespace' && token.type !== 'LineTerminator') source.push(source);
+      console.log(token);
+    }
+
+    function Expression(tokens) {
+
+    }
+
+    function AdditiveExpression(source) {
+
+    }
+
+    // 最贴近终结符 *
+    function MultiplicativeExpression(source) {
+      console.log(source);
+    }
+
+    MultiplicativeExpression("10 * 25");
+
+    console.log(source);
+  </script>
+</body>
+
+</html>

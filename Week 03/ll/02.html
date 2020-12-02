@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LL词法分析 - 四则运算</title>
+</head>
+
+<body>
+  <script>
+
+    var regexp = /([0-9\.]+)|([ \t]+)|([\r\n]+)|(\*)|(\/)|(\+)|(\-)/g;
+
+    var dictionary = ['Number', 'Whitespace', 'LineTerminator', '*', '/', '+', '-'];
+
+    function* tokenzie(source) {
+
+      var result = null;
+      // 匹配出来的长度跟前进的长度不一样长
+      var lastIndex = 0;
+
+      while (true) {
+        // 旧的跟新生的作比较，长度超了说明里面有不认识的字符、格式，略过
+        lastIndex = regexp.lastIndex;
+        var result = regexp.exec(source);
+
+        // 没匹配出，略过
+        if (!result) break;
+
+        // 匹配出不认识的字符，略过 
+        if (regexp.lastIndex - lastIndex > result[0].length) break;
+
+        let token = {
+          type: null,
+          value: null
+        }
+
+        for (var i = 0; i <= dictionary.length; i++) {
+
+          if (result[i])
+            // 找出类型
+            token.type = dictionary[i - 1];
+        }
+        token.value = result[0];
+        // 返回新的序列
+        yield token;
+
+      }
+      yield {
+        type: "EOF"
+      }
+    }
+
+    for (let token of tokenzie("1024 + 10 * 25")) {
+      console.log(token);
+    }
+
+    // 第二个步骤完成
+
+
+  </script>
+</body>
+
+</html>

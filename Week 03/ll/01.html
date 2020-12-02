@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LL词法分析 - 四则运算</title>
+</head>
+
+<body>
+  <script>
+
+    /**
+      * (): 表示捕获
+      * |:  匹配一个或关系的分支
+      */
+    var regexp = /([0-9\.]+)|([ \t]+)|([\r\n]+)|(\*)|(\/)|(\+)|(\-)/g;
+
+    var dictionary = ['Number', 'Whitespace', 'LineTerminator', '*', '/', '+', '-'];
+
+    function tokenize(source) {
+      var result = null;
+      while (true) {
+
+        // exec：不断的扫描整个原字符串里面的内容
+        result = regexp.exec(source);
+
+        if (!result) break;
+
+        // 0 是整个匹配
+        // 在 dictionary 范围里面 1 ~ 7 种 匹配到哪一种输入元素
+        for (var i = 1; i <= dictionary.length; i++) {
+          // result 有对应的值，就打印
+          if (result[i]) {
+            console.log(dictionary[i - 1]);
+          } 
+        }
+        console.log(result);
+      }
+    }
+
+    tokenize("1024 + 10 * 25");
+
+  </script>
+</body>
+
+</html>

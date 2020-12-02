@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LL语法分析 - 四则表达式</title>
+</head>
+
+<body>
+  <script>
+    let regexp = /([0-9\.]+)|([ \t]+)|([\r\n]+)|(\*)|(\/)|(\+)|(\-)/g;
+
+    let dictionary = ['Number', 'Whitespace', 'LineTerminator', '*', '/', '+', '-'];
+
+    function* tokenize(source) {
+      let result = null;
+      let lastIndex = 0;
+
+      // while (true) {
+      do {
+        result = regexp.exec(source);
+        lastIndex = regexp.lastIndex;
+
+        if (!result) break;
+        // if (regexp.lastIndex - lastIndex > result[0].length) break;
+
+        let token = {
+          type: null,
+          value: null
+        }
+
+        for (let i = 1; i <= dictionary.length; i++) {
+          if (result[i]) token.type = dictionary[i - 1]
+        }
+
+        token.value = result[0];
+        yield token;
+      } while (result)
+
+      yield { type: "EOF" }
+
+    }
+
+    let source = [];
+
+    for (let token of tokenize("10 * 25 / 2")) {
+      if (token.type !== "Whitespace" && token.type !== "LineTerminator") source.push(token)
+      // console.log(token);
+    }
+
+    function Expression(toknes) { }
+    function AdditiveExpression(source) { }
+
+
+    function MultiplicativeExpression(source) {
+
+      // 第一个输入
+      if (source[0].type === "Number") {
+        // 新的非终结符节点
+        let node = {
+          type: "MultiplicativeExpression",
+          children: [source[0]]
+        }
+        source[0] = node;
+        return MultiplicativeExpression(source); // 后面可能还会有 * 号 或 / 号，所以需要递归调用
+      }
+      // 第二个输入
+      if (source[0].type === "MultiplicativeExpression" && source[1] && source[1].type === "*") {
+        let node = {
+          type: "MultiplicativeExpression",
+          operator: "*",
+          children: []
+        }
+        // 前三项都 shift 出来
+        node.children.push(source.shift());
+        node.children.push(source.shift());
+        node.children.push(source.shift());
+        // 放到 node 的 children 里面，然后给它新生成的结构再放回source里面去
+        source.unshift(node);
+        return MultiplicativeExpression(source);
+      }
+      // 第三个输入
+      if (source[0].type === "MultiplicativeExpression" && source[1] && source[0].type === "/") {
+        let node = {
+          type: 'MultiplicativeExpression',
+          operator: "/",
+          children: []
+        }
+        node.children.push(source.shift());
+        node.children.push(source.shift());
+        node.children.push(source.shift());
+        source.unshift(node);
+        return MultiplicativeExpression(source);
+      }
+      // 以上三个除外 return
+      if (source[0].type === "MultiplicativeExpression") { // 递归结束的条件
+        // 处理完毕所有的乘法
+        return source[0];
+      }
+      // console.log(source);
+      // 出现其他的情况默认递归
+      return MultiplicativeExpression(source); // 永远不会执行
+    }
+
+    console.log(MultiplicativeExpression(source));
+
+
+  </script>
+</body>
+
+</html>
