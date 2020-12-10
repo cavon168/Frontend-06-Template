@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    function find(haystack, needle) {
+      if (!needle.length) {
+        return 0;
+      }
+
+      let table = new Array(needle.length).fill(0);
+
+      {
+        let i = 0, j = 1;
+        while (j < needle.length) {
+          console.log(i , haystack[i], j, needle[j]);
+          if (needle[i] === needle[j]) {
+            ++j;
+            ++i;
+            table[j] = i;
+          } else {
+            if (i === 0) {
+              j++;
+            } else {
+              i = table[i];
+            }
+          }
+        }
+      }
+
+      { 
+        let i = 0, j = 0;
+        while (i < haystack.length) {
+          if (needle[j] === haystack[i]) {
+            j++;
+            i++;
+          } else {
+            if (j > 0) {
+              j = table[j];
+            } else {
+              i++;
+            }
+          }
+          if (j === needle.length) {
+            return i - needle.length;
+          }
+        }
+        return -1;
+      }
+    }
+
+    // console.log(find("aabaaabaab", "aab"));
+    // console.log(find("hello", "ll"));
+    console.log(find("abc", "abc"));
+  </script>
+</body>
+</html>

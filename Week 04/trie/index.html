@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>字典树</title>
+</head>
+
+<body>
+
+  <script>
+
+    // 截止符更加严谨
+    let $ = Symbol("$");
+
+    class Trie {
+      constructor() {
+        this.root = Object.create(null); // 避免污染
+      }
+      // 插入字典树
+      insert(word) {
+        // 逐级放进 this.root 树的子树里
+        let node = this.root;
+
+        // for 传进来的 word 这个新的字符串
+        for (let c of word) {
+          // 如果子树不存在 创建
+          if (!node[c]) node[c] = Object.create(null);
+
+          // 让 node 到下一个层级去，相当于查字典的时候翻到对应字母的位置
+          node = node[c];
+
+        }
+
+        // 由于字符串会有大量的重复，需要一个截止符 $
+        if (!($ in node))
+          // 跟 most 里面对应
+          node[$] = 0;
+
+        node[$]++;
+      }
+
+      // 遍历整个树
+      most() {
+        // 记录最后 word 出现的次数
+        let max = 0;
+        // 记录 word
+        let maxWord = null;
+
+        // 如果想访问这棵树上的每个单词怎么办？
+        let visit = (node, word) => {
+          // 先看这棵树有没有 $ 结束符，说明这是单词截止的一个点，找到了这个截止的点
+          if (node[$] && node[$] > max) {
+            // 找到 max 节点，但是不等于找到了这个词
+            max = node[$];
+            // 所以在 visit 递归树上加一个 word 参数，
+            maxWord = word;
+          }
+          for (let p in node) {
+            // 然后调用之后，每一次往下潜进一层的时候，每次都在 word 上追加一个当前的树的名字，访问最后得到的节点的时候同时能够获得 word
+            visit(node[p], word + p)
+          }
+        }
+        // 得到出现最多字符的数量
+        visit(this.root, "");
+        console.log(maxWord, max);
+      }
+    }
+
+    // 产生随机的单词
+    function randomWord(length) {
+      let s = "";
+      for (let i = 0; i < length; i++) {
+        // 1. "a".charCodeAt(0) 取 a 的 ASCLL 97 ；
+        // 2. Math.random() * 26 + "a".charCodeAt(0) 产生随机的一个数字
+        // 3. 然后执行 String.fromCharCode() 变成 字母
+        s += String.fromCharCode(Math.random() * 26 + "a".charCodeAt(0));
+
+      }
+      return s;
+    }
+
+    let trie = new Trie();
+
+    // 插入10万个空的字符也就是随机创建的单词
+    for (let i = 0; i < 100000; i++) {
+      trie.insert(randomWord(4));
+    }
+
+    trie.most();
+
+    /**
+      * 1. 在代码中如何实现这颗字典树？
+      * 2. 字典树有什么样的应用场景？
+      *
+      * 一般使用 Object、Map 用来保存字典树
+      * 字典树是哈希树的一种特例，哈希树在字符串里面最直接的应用体现就是字典树
+      *
+      * 静态 String.fromCharCode() 方法返回由指定的 UTF-16 代码单元序列创建的字符串。
+      * charCodeAt() 方法返回 0 到 65535 之间的整数，表示给定索引处的 UTF-16 代码单元
+      * Math.random() 函数返回一个浮点,  伪随机数在范围从0到小于1，也就是说，从0（包括0）往上，但是不包括1（排除1），
+      *     然后您可以缩放到所需的范围。实现将初始种子选择到随机数生成算法;它不能被用户选择或重置。
+      */
+  </script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KMP</title>
+</head>
+
+<body>
+
+  <script>
+
+    /**
+     * @param {string} source 源 i
+     * @param {string} pattern 目标 j
+     */
+
+    function kmp(source, pattern) {
+
+      // source/pattern 长度一样
+      let table = new Array(pattern.length).fill(0);
+
+      // 第一部分：计算跳转表格
+      {
+        // 如果从 0 开始整个串都是自重复的, 查看有没有自重复从 1 开始
+        let i = 1;
+        // 表示已重复的字数
+        let j = 0;
+
+        // 从 i 开始算自重复字数
+        while (i < pattern.length) {
+          // i j 相等 说明匹配上了
+          if (pattern[i] === pattern[j]) {
+            ++i, ++j;
+            table[i] = j
+          }
+          // 不匹配
+          else {
+            // pattern 的位置就要回退到 table 去了
+            if (j > 0) {
+              j = table[j];
+            } else {
+              // 往前走一格，没匹配上
+              ++i;
+            }
+          }
+        }
+      }
+
+      // 第二部分：匹配
+      {
+        let i = 0; j = 0;
+        while (i < source.length) {
+          
+          // 匹配上
+          if (pattern[j] === source[i]) {
+            // 都前进一格
+            ++i, ++j;
+          }
+          // 没匹配上
+          else {
+            if (j > 0) {
+              j = table[j];
+            } else {
+              ++i;
+            }
+          }
+
+          // 模式串匹配到头了，说明结束了
+          if (j === pattern.length) return true;
+        }
+        // source 到头了
+        return false;
+      }
+      // console.log(table);
+    }
+    // kmp("", "abcdabce");
+    // kmp("", "abababc");
+    // kmp("", "aabaaac");    
+
+    console.log(kmp("Hello", "ll"));
+    console.log(kmp("Helxlo", "ll"));
+
+    console.log(kmp("abcdabce", "abcdabce"));
+    console.log(kmp("aabbccddaabbccee", "abcdabce"));
+
+    // LeetCode 28题
+
+
+  </script>
+</body>
+
+</html>
