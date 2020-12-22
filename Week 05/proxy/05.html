@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>prexy 与双向绑定 | 优化 reactive</title>
+</head>
+
+<body>
+  <script>
+
+    let callbacks = new Map();
+    // 当调用 reactivtiy 的时候，会加一个缓存，因为 proxy 本身里面是不存储任何状态的，它的状态都会代理到 object 上
+    let reactivties = new Map();
+
+    let usedReactivties = [];
+
+    let object = { a: { b: 3 }, b: 2 };
+    let po = reactive(object);
+
+    effect(() => {
+      // console.log(po.a);
+      // 级联的情况
+      console.log(po.a.b);
+    });
+
+    function effect(callback) {
+      // callbacks.push(callback);
+      usedReactivties = [];
+
+      callback();
+
+      console.log(usedReactivties);
+
+      for (let reactivity of usedReactivties) {
+        if (!callbacks.has(reactivity[0])) {
+          callbacks.set(reactivity[0], new Map());
+        }
+        if (!callbacks.get(reactivity[0]).has(reactivity[1])) {
+          callbacks.get(reactivity[0]).set(reactivity[1], []);
+        }
+        callbacks.get(reactivity[0]).get(reactivity[1]).push(callback);
+      }
+    }
+
+    // 无状态的函数
+    function reactive(object) {
+      // 添加缓存的逻辑
+      if (reactivties.has(object)) return reactivties.get(object);
+
+      // 存储
+      let proxy = new Proxy(object, {
+        set(obj, prop, val) {
+          obj[prop] = val;
+          if (callbacks.get(obj)) {
+            if (callbacks.get(obj).get(prop)) {
+              for (let callback of callbacks.get(obj).get(prop)) {
+                callback();
+              }
+            }
+          }
+          return obj[prop];
+        },
+        get(obj, prop) {
+          usedReactivties.push([obj, prop]);
+          if (typeof obj[prop] === "object") return reactive(obj[prop]);
+          return obj[prop];
+        }
+      });
+
+      // 获取
+      reactivties.set(object, proxy);
+
+      return proxy;
+    }
+
+
+    /**
+      * 小问题：
+      *     比如在 effect 里面，如果调用了 po.a.b，然后把原始对象 object 里面的 a 改成 a: { b: 3 },
+      *     那么 po.a.b 这个对象是监听不到的，所以必须要进行一些处理，能够支持 po.a.b 这样的形式调用。
+      * 解决：
+      *     对 reactive 的 get set 有一定要求：
+      *       当 get 的 prop 是一个对象就需要套一个 reactivity
+
+      * 此时，出现问题：
+      *     reactive 是生成了一个新的 Proxy，最后 po.a.b 访问到的 proxy 跟 use effect 调用的那一遍访问到的 proxy 是不同的。
+      * 解决：
+      *     需要一张全局的表格来保存它
+      */
+  </script>
+</body>
+
+</html>

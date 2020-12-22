@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>proxy 与双向绑定 | 模仿 reactive 实现原理(三)</title>
+</head>
+
+<body>
+  <script>
+    // let callbacks = [];
+    // 将 usedusedReactivties 存起来，让 object 作为一个 key 去找 reactive
+    let callbacks = new Map();
+
+    // 1. 创建全局变量
+    let usedReactivties = [];
+
+    let object = {
+      a: 1,
+      b: 2
+    }
+
+    let po = reactive(object);
+
+    // 在 effect 里面瞅瞅调用了 object 哪些属性获取出来
+    effect(() => {
+      // 2. 在 effect 里面去调用一次 effect 的函数
+      console.log(po.a);
+    });
+
+    function effect(callback) {
+      // callbacks.push(callback);
+      // 4. 执行完会看到用了哪些变量
+
+      // 清空
+      usedReactivties = [];
+      // 调用，如果真的引到了 reactive 的对象就一定会在 get 里面发生一个注册的行为
+      callback();
+      console.log(usedReactivties);
+
+      for (const reactivity of usedReactivties) {
+        // 避免多次发生注册需防御性逻辑
+        if (!callbacks.has(reactivity[0]))
+          // 第一层对象
+          callbacks.set(reactivity[0], new Map());
+
+        // 第二层属性
+        if (!callbacks.get(reactivity[0]).has(reactivity[1]))
+          callbacks.get(reactivity[0]).set(reactivity[1], []);
+
+        // 第三 排除前面空的清空，在两级的索引以上
+        callbacks.get(reactivity[0]).get(reactivity[1]).push(callback);
+
+        console.log(reactivity);
+      }
+
+    }
+
+    function reactive(object) {
+      return new Proxy(object, {
+        set(obj, prop, val) {
+          obj[prop] = val;
+          // 有对象有属性
+          if (callbacks.get(obj)) {
+            if (callbacks.get(obj).get(prop)) {
+              for (let callback of callbacks.get(obj).get(prop)) {
+                callback();
+              }
+            }
+          }
+
+          return obj[prop];
+        },
+        get(obj, prop) {
+          // 3. 在 reactive 的 get 里面把它注册进全局变量 usedReactivties里面
+          usedReactivties.push([obj, prop]);
+          return obj[prop];
+        }
+      });
+    }
+
+    // 虽然么样办法去获得一个函数里面引了哪些变量，但是有办法去调用函数看看实际用了哪些变量
+    // 如果引了普通变量，没办法监听
+    // 如果引了 reactive ，就有办法在 reactive 的 get 里面去获得监听效果
+
+
+
+    // 正确的完成了 effect 最终效果，演示了 reactivity 的实现原理
+  </script>
+</body>
+
+</html>

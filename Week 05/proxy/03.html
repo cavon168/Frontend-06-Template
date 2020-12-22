@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>proxy 与双向绑定 | 模仿 reactive 实现原理(二)</title>
+</head>
+
+<body>
+  <script>
+    let callbacks = [];
+
+    let object = {
+      a: 1,
+      b: 2
+    }
+
+    let po = reactive(object);
+
+    // 监听 po 上面的属性，代替事件监听的机制
+    effect(() => {
+      console.log(po.a);
+    });
+
+    // Vue API
+    function effect(callback) {
+      callbacks.push(callback);
+    }
+
+    function reactive(object) {
+      return new Proxy(object, {
+        set(obj, prop, val) {
+          obj[prop] = val;
+          for (let callback of callbacks) {
+            callback();
+          }
+          console.log(obj, prop, val);
+          return obj[prop];
+        },
+        get(obj, prop) {
+          console.log(obj, prop);
+          return obj[prop];
+        }
+      });
+    }
+
+    // 如果只考虑实现的正确性而不考虑性能的话，那么已经完成了 reactive 的操作。
+    // 但是，显然有一个严重的性能问题，比如：有 100 个对象设置了 100 个 effect 执行一遍就要调一万遍。
+    // 由于 callback 是一个全局的，所以每次执行的时候都会把 callback 执行了 一遍
+    // 
+    // 仅传一个函数，让它能只有在对应的变量去变化的时候能够触发函数的调用。
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>使用 Range 实现 DOM 精确操作 | 基本拖拽</title>
+</head>
+
+<body>
+  <div id="container">
+    文字 文字 文字 文字 文字 文字 文字 文字
+    文字 文字 文字 文字 文字 文字 文字 文字
+    文字 文字 文字 文字 文字 文字 文字 文字
+    文字 文字 文字 文字 文字 文字 文字 文字
+    文字 文字 文字 文字 文字 文字 文字 文字
+    文字 文字 文字 文字 文字 文字 文字 文字
+    文字 文字 文字 文字 文字 文字 文字 文字
+    文字 文字 文字 文字 文字 文字 文字 文字
+    文字 文字 文字 文字 文字 文字 文字 文字
+    文字 文字 文字 文字 文字 文字 文字 文字
+    文字 文字 文字 文字 文字 文字 文字 文字
+    文字 文字 文字 文字 文字 文字 文字 文字
+    文字 文字 文字 文字 文字 文字 文字 文字
+    文字 文字 文字 文字 文字 文字 文字 文字
+    文字 文字 文字 文字 文字 文字 文字 文字
+    文字 文字 文字 文字 文字 文字 文字 文字
+    文字 文字 文字 文字 文字 文字 文字 文字
+    文字 文字 文字 文字 文字 文字 文字 文字
+    文字 文字 文字 文字 文字 文字 文字 文字
+    文字 文字 文字 文字 文字 文字 文字 文字
+    文字 文字 文字 文字 文字 文字 文字 文字
+    文字 文字 文字 文字 文字 文字 文字 文字
+    文字 文字 文字 文字 文字 文字 文字 文字
+    文字 文字 文字 文字 文字 文字 文字 文字
+    文字 文字 文字 文字 文字 文字 文字 文字
+    文字 文字 文字 文字 文字 文字 文字 文字
+    文字 文字 文字 文字 文字 文字 文字 文字
+    文字 文字 文字 文字 文字 文字 文字 文字
+  </div>
+  <div id="dragable" style="width: 100px; height: 100px; background-color: pink; display: inline-block;"></div>
+  <script>
+    let dragable = document.getElementById("dragable");
+
+    /**
+     * 为了响应 mousemove 和 mouseup 的事件，需要在 mousedown 的事件里面去监听这两个事件。
+     * 为什么一定要在 mousedown 的时候才开始去监听？
+     *     因为只有鼠标按下之后，去监听这个事件，才能在性能上和逻辑上都正确。
+     *     如果把 addEventListener mousemove 写在 mousedown 之外，那么不管什么时候只要鼠标在上面一移动，事件就会触发，
+     *     即使用一个 flag，让它在 mousedown 没有发生的情况下也不去触发，在性能上总是要多执行一遍这个函数，不合理。
+     *     实际上 mousemove 和 mouseup 都是要在 document 上去进行监听的。
+     *     如果在 dragable 上监听就容易出现当鼠标一下拖得太快了，移开 dragable 的区域，那么就会发生一个掉下来、拖断的现象。
+     * 
+     * 在比较新的现代浏览器里面，document 上监听，就会产生一个捕捉鼠标的效果，移出浏览器的范围外，事件仍然能够接收到。
+     */
+
+    // 在已经有的 translate 基础上加，模块级的作用域
+    let baseX = 0, baseY = 0;
+
+    // 完全跟谁鼠标移动：当鼠标按下 dragable 盒子的时候，即使鼠标移出了浏览器的范围仍然可以监听到。
+    dragable.addEventListener("mousedown", function (event) {
+      // 鼠标起始点
+      let startX = event.clientX, startY = event.clientY;
+
+      // 在 mouseup 的时候要把 mousemove 和 mouseup 再给它 removeEventListener 去掉，即需要两个变量保存起来。
+      let up = event => {
+        // 更新：鼠标拖拽的每次变化的量
+        baseX = baseX + event.clientX - startX;
+        baseY = baseY + event.clientY - startY;
+        document.removeEventListener("mousemove", move);
+        document.removeEventListener("mouseup", up);
+      }
+      let move = event => {
+        // 鼠标走到哪 dragable 盒子到哪
+        // dragable.style.transform = `translate(${baseX + event.clientX - startX}px, ${baseY + event.clientY - startY}px)`;
+
+        // 获取到离插入点最近的一个 range
+        let range = getNearest(event.clientX, event.clientY);
+        // 为什么不需要把以前的移除掉，因为 insert、所有 DOM 操作，如果这个元素已经在 DOM 树上，都会把原来默认的移除掉。
+        range.insertNode(dragable);
+      }
+      // 在 document 上去监听 mousemove 和 mouseup
+      document.addEventListener("mousemove", move);
+      document.addEventListener("mouseup", up);
+    });
+    // 以上代码就是拖拽的骨架代码。
+
+
+    /**
+     * 为什么必须要用 document 监听？(拖拽里面非常重要的技巧)
+     * 当我们不在 document 上面去做监听事件，将 document 换成 dragable，
+     * 那么当鼠标按下 dragable 盒子的时候，可以监听到，
+     * 当鼠标移出 dragable 盒子的时候，此时不会响应了。
+     * 因为无论如何都不会把 dragable 盒子拖出浏览器的范围。
+     */
+
+
+    /**
+     * 1. 将 dragable 拖进 container 文字当中去
+     *    如果我们想把 dragable div 拖到文字中间
+     *    a. 文字没有分节点，没有分节点必须要 Range 去找到能拖拽的空位
+     * 2. 用 CSSOM 和 Range 去做哪些事情？
+     */
+
+    let container = document.getElementById("container");
+    let ranges = [];
+
+    // 建一个 Range 的表，然后把整个的所有能插的空隙列出来，按照长度插入
+    for (let i = 0; i < container.childNodes[0].textContent.length; i++) {
+      // 找到所有 Range 的位置
+      let range = document.createRange();
+      range.setStart(container.childNodes[0], i);
+      range.setEnd(container.childNodes[0], i);
+
+      // CSSOM 用法：拿到了 range 但是不知道位置，需要用到 CSSOM API
+      console.log(range.getBoundingClientRect());
+
+      ranges.push(range);
+    }
+
+    // console.log(ranges);
+
+    // 处理 Range，找到离某一个 point 最近的 range
+    function getNearest(x, y) {
+      // 类似一堆数里面找最大的，这里是小的，任何一个值都可替换 min
+      let min = Infinity
+      let nearest = null;
+      for (let range of ranges) {
+
+
+
+        // 找离最近的一个 range
+        let rect = range.getBoundingClientRect();
+        // 距离
+        let distance = (rect.x - x) ** 2 + (rect.y - y) ** 2;
+        // 说明距离插入点最近的一个
+        if (distance < min) {
+          nearest = range;
+          min = distance;
+        }
+      }
+
+      return nearest;
+    }
+
+    // 鼠标禁止选中文字
+    document.addEventListener("selectstart", e => e.preventDefault());
+
+    /**
+     * 为什么不能在第一次 log 用到 CSSOM 的地方直接去存 ract 进来？
+     *     因为 range 随着变化，range 是不会变的，但是 BoundingClientRect 是 CSSOM，所以，一旦这个界面发生了一些变化，range 就会发生一些变化。
+     */ 
+
+  </script>
+</body>
+
+</html>

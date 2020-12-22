@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>proxy 与双向绑定 | reactivity 响应式对象(一)</title>
+</head>
+
+<body>
+  <input id="r">
+  <script>
+    let object = { r: 1, g: 1, b: 1 };
+
+    let callbacks = new Map();
+    let reactivties = new Map();
+
+    let usedReactivties = [];
+
+    let po = reavtive(object);
+
+    effect(() => {
+      // 单向绑定，从数据到 input
+      document.getElementById("r").value = po.r;
+    });
+
+    // 双向绑定
+    document.getElementById("r").addEventListener("input", e => po.r = e.target.value);
+
+    function effect(callback) {
+      // callbacks.push(callback);
+
+      usedReactivties = [];
+
+      callback();
+
+      for (let reactivity of usedReactivties) {
+        if (!callbacks.has(reactivity[0])) {
+          callbacks.set(reactivity[0], new Map());
+        }
+        if (!callbacks.get(reactivity[0]).has(reactivity[1])) {
+          callbacks.get(reactivity[0]).set(reactivity[1], []);
+        }
+
+        callbacks.get(reactivity[0]).get(reactivity[1]).push(callback);
+      }
+
+      console.log(usedReactivties);
+
+    }
+
+    function reavtive(object) {
+
+      if (reactivties.has(object)) return reactivties.get(object);
+
+      let proxy = new Proxy(object, {
+        set(obj, prop, val) {
+          obj[prop] = val;
+
+          if (callbacks.get(obj)) {
+            if (callbacks.get(obj).get(prop)) {
+              for (let callback of callbacks.get(obj).get(prop)) {
+                callback();
+              }
+            }
+          }
+          return obj[prop];
+        },
+        get(obj, prop) {
+          usedReactivties.push([obj, prop]);
+          if (typeof obj[prop] === "object") return reavtive(obj[prop]);
+          return obj[prop];
+        }
+      });
+
+      reactivties.set(object, proxy);
+
+      return proxy;
+    }
+
+    /**
+     * 思考：
+     *   reactivity 有什么用？
+     *      reactivity特性是一个半成品的双向绑定，可以负责从数据到 DOM 元素一条线的监听。
+     *   从 DOM 元素到数据的这一条线的监听？
+     *      因为 DOM 元素本来就有事件，不一定是到 DOM 的元素，也可以是任何的 native 的输入到代理到这个 reactive 里面。
+     */
+
+  </script>
+</body>
+
+</html>

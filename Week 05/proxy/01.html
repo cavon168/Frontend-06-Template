@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>proxy 与双向绑定 | proxy 基本用法</title>
+</head>
+
+<body>
+  <script>
+    /**
+    如果我们有一个对象，既让它设置又要被监听该怎么做？
+        可以通过 proxy 把 object 去做一层包裹
+    */
+
+    let object = {
+      a: 1,
+      b: 2
+    }
+
+    /**
+      * @param {object} object 目标对象
+      * @param {object} config对象 一个通常以函数作为属性的对象
+      */
+    let po = new Proxy(object, {
+      // 参数一 object 对象收到的就是 proxy 这个被代理对象，如果调用原始的 object 去设置值并不会触发 proxy 上 hook 的函数
+      // 只有 po 最后才会执行到 proxy 对象的行为，po 上面的所有行为都是可以被重新再去指定的
+      // 参数二 config 对象：包含所有对 po 做的钩子函数
+      set(obj, prop, val) { // 设置对象属性的时候触发 set 函数
+        console.log(obj, prop, val);
+      }
+    });
+
+  </script>
+</body>
+
+</html>
