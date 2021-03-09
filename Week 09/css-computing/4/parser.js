@@ -54,9 +54,9 @@ function computeCSS(element) {
      */
     // 双循环选择器和元素的父元素是否能够进行匹配
     let j = 1;
-    for (let i = 0; i < element.length; i++) {
+    for (let i = 0; i < elements.length; i++) {
       // 一旦元素能够匹配到一个选择器
-      if (match(element[i], selectorParts[j])) {
+      if (match(elements[i], selectorParts[j])) {
         j++; // 自增
       }
     }
